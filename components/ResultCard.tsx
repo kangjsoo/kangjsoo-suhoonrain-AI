@@ -200,8 +200,9 @@ ${result.suhoonSolution}
       margin: 10,
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     try {
@@ -240,9 +241,9 @@ ${result.suhoonSolution}
   }
 
   return (
-    <div ref={pdfContentRef} className="space-y-4 md:space-y-6 animate-fade-in">
+    <div ref={pdfContentRef} className="space-y-4 md:space-y-6 animate-fade-in pb-4">
       {/* Analysis Section */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200" style={{ breakInside: 'avoid' }}>
          <div className="bg-slate-100 px-4 py-3 md:px-6 md:py-4 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center">
                 <span className="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm mr-2 flex-shrink-0">2</span>
@@ -255,7 +256,7 @@ ${result.suhoonSolution}
                     파란색 단어를 누르면 용어 설명이 나옵니다
                 </div>
                 
-                {/* PDF Download Button */}
+                {/* PDF Download Button (Top) */}
                 <button 
                   onClick={handleDownloadPDF}
                   disabled={isPdfGenerating}
@@ -327,7 +328,7 @@ ${result.suhoonSolution}
       </div>
 
       {/* Script Section */}
-      <div className="bg-blue-50 rounded-xl shadow-md border border-blue-100 overflow-hidden">
+      <div className="bg-blue-50 rounded-xl shadow-md border border-blue-100 overflow-hidden" style={{ breakInside: 'avoid' }}>
         <div className="px-4 py-3 md:px-6 md:py-4 border-b border-blue-200 bg-blue-100 flex justify-between items-center">
             <h2 className="text-lg font-bold text-blue-900 flex items-center">
                 <span className="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm mr-2 flex-shrink-0">3</span>
@@ -366,7 +367,7 @@ ${result.suhoonSolution}
 
       {/* Sales Strategy / Suhoon Solution Section */}
       {result.suhoonSolution && (
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg border border-slate-700 overflow-hidden text-white">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg border border-slate-700 overflow-hidden text-white" style={{ breakInside: 'avoid' }}>
           <div className="px-4 py-3 md:px-6 md:py-4 border-b border-slate-700 flex items-center bg-white/5">
             <Lightbulb className="w-5 h-5 text-yellow-400 mr-2" />
             <h2 className="text-lg font-bold text-white">수훈라인 전문가의 한마디</h2>
@@ -398,6 +399,18 @@ ${result.suhoonSolution}
       )}
 
       <Disclaimer className="mt-4 md:mt-6" />
+
+      {/* Bottom Download Button (Visible only on screen) */}
+      <div className="flex justify-center mt-6" data-html2canvas-ignore="true">
+        <button 
+            onClick={handleDownloadPDF}
+            disabled={isPdfGenerating}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg transition-all transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+            {isPdfGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+            {isPdfGenerating ? 'PDF 문서 생성 중...' : '전체 상담 결과 PDF로 다운로드'}
+        </button>
+      </div>
     </div>
   );
 };
