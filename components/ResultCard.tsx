@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnalysisResult } from '../types';
-import { CheckCircle2, Gavel, Scale, Copy, Check, Lightbulb, MessageCircle, AlertCircle, HelpCircle, Share2, Download, Loader2, FileCheck, X } from 'lucide-react';
+import { CheckCircle2, Gavel, Scale, Copy, Check, Lightbulb, MessageCircle, AlertCircle, HelpCircle, Share2, FileCheck, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import Disclaimer from './Disclaimer';
 
@@ -136,17 +136,17 @@ const processChildren = (children: React.ReactNode): React.ReactNode => {
 };
 
 const MarkdownContent = ({ content, className = "" }: { content: string, className?: string }) => (
-  <div className={`text-sm md:text-base leading-7 text-slate-700 ${className}`}>
+  <div className={`text-sm md:text-base leading-relaxed text-slate-700 ${className}`}>
     <ReactMarkdown
       components={{
-        p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props}>{processChildren(props.children)}</p>,
-        li: ({node, ...props}) => <li className="mb-1 pl-1" {...props}>{processChildren(props.children)}</li>,
+        p: ({node, ...props}) => <p className="mb-4 md:mb-5 last:mb-0 break-keep" {...props}>{processChildren(props.children)}</p>,
+        li: ({node, ...props}) => <li className="mb-2 pl-1 break-keep" {...props}>{processChildren(props.children)}</li>,
         strong: ({node, ...props}) => <span className="font-bold text-slate-900 bg-yellow-100 px-1 rounded-sm" {...props}>{processChildren(props.children)}</span>,
-        ul: ({node, ...props}) => <ul className="list-disc list-outside ml-5 space-y-1 my-2 text-slate-600" {...props} />,
-        ol: ({node, ...props}) => <ol className="list-decimal list-outside ml-5 space-y-1 my-2 text-slate-600" {...props} />,
-        h1: ({node, ...props}) => <h3 className="font-bold text-lg mb-2 mt-4" {...props} />,
-        h2: ({node, ...props}) => <h4 className="font-bold text-md mb-2 mt-3" {...props} />,
-        h3: ({node, ...props}) => <h5 className="font-bold text-sm mb-1 mt-2" {...props} />,
+        ul: ({node, ...props}) => <ul className="list-disc list-outside ml-5 space-y-2 my-4 text-slate-600" {...props} />,
+        ol: ({node, ...props}) => <ol className="list-decimal list-outside ml-5 space-y-2 my-4 text-slate-600" {...props} />,
+        h1: ({node, ...props}) => <h3 className="font-bold text-lg mb-3 mt-6" {...props} />,
+        h2: ({node, ...props}) => <h4 className="font-bold text-md mb-3 mt-5" {...props} />,
+        h3: ({node, ...props}) => <h5 className="font-bold text-sm mb-2 mt-4" {...props} />,
       }}
     >
       {content}
@@ -157,9 +157,6 @@ const MarkdownContent = ({ content, className = "" }: { content: string, classNa
 const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
   const [scriptCopied, setScriptCopied] = useState(false);
   const [resultShared, setResultShared] = useState(false);
-  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
-  
-  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   const handleCopyScript = () => {
     navigator.clipboard.writeText(result.recommendedScript);
@@ -199,38 +196,6 @@ ${result.legalBasis}
       setTimeout(() => setResultShared(false), 2000);
     }
   };
-  
-  const handleDownloadPDF = async () => {
-    if (!pdfContentRef.current || isPdfGenerating) return;
-    const html2pdf = (window as any).html2pdf;
-    if (!html2pdf) {
-      alert("PDF 생성 기능을 불러오지 못했습니다.");
-      return;
-    }
-
-    setIsPdfGenerating(true);
-    const element = pdfContentRef.current;
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const fileName = `수훈라인_분쟁상담리포트_${dateStr}.pdf`;
-
-    const opt = {
-      margin: [10, 10, 10, 10], // Reduced margin for mobile/print
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    try {
-      await html2pdf().set(opt).from(element).save();
-    } catch (err) {
-      console.error("PDF Fail:", err);
-      alert("PDF 생성 중 오류가 발생했습니다.");
-    } finally {
-      setIsPdfGenerating(false);
-    }
-  };
 
   if (!result.isConsultationPossible) {
     return (
@@ -260,7 +225,7 @@ ${result.legalBasis}
     <div className="space-y-6 animate-fade-in pb-8">
       
       {/* Report Container */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden print:shadow-none print:border-none" ref={pdfContentRef}>
+      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden print:shadow-none print:border-none">
          
          {/* Report Header */}
          <div className="bg-blue-900 text-white px-5 py-4 md:px-6 md:py-5 flex items-center justify-between print:bg-blue-900 print:text-white">
@@ -272,14 +237,6 @@ ${result.legalBasis}
                 </div>
             </div>
             <div className="flex gap-2" data-html2canvas-ignore="true">
-                <button 
-                  onClick={handleDownloadPDF}
-                  disabled={isPdfGenerating}
-                  className="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors border border-blue-700"
-                  title="PDF 다운로드"
-                >
-                    {isPdfGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                </button>
                 <button 
                   onClick={handleShareResult}
                   className="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors border border-blue-700"
@@ -341,22 +298,22 @@ ${result.legalBasis}
                 </div>
             </div>
 
-            {/* 4. Solution (Suhoon) */}
+            {/* 4. Solution (Suhoon) - Light Theme Update */}
              {result.suhoonSolution && (
                 <div className="mt-8 border-t-2 border-slate-100 pt-6">
-                    <div className="flex flex-col md:flex-row items-start bg-slate-800 text-white rounded-xl p-5 shadow-lg">
+                    <div className="flex flex-col md:flex-row items-start bg-indigo-50 border border-indigo-100 rounded-xl p-5 md:p-6 shadow-sm">
                         <div className="flex items-center mb-3 md:mb-0">
-                            <Lightbulb className="w-8 h-8 text-yellow-400 mr-4 flex-shrink-0" />
-                            <h3 className="text-lg font-bold text-white md:hidden">수훈라인 전문가 소견</h3>
+                            <Lightbulb className="w-8 h-8 text-amber-500 mr-4 flex-shrink-0" />
+                            <h3 className="text-lg font-bold text-indigo-900 md:hidden">수훈라인 전문가 소견</h3>
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-bold text-white mb-2 hidden md:block">수훈라인 전문가 소견</h3>
-                            <div className="text-slate-300">
-                                <MarkdownContent content={result.suhoonSolution} className="text-slate-200" />
+                            <h3 className="text-lg font-bold text-indigo-900 mb-2 hidden md:block">수훈라인 전문가 소견</h3>
+                            <div className="">
+                                <MarkdownContent content={result.suhoonSolution} className="text-slate-700" />
                             </div>
-                            <div className="mt-4 text-right" data-html2canvas-ignore="true">
-                                <a href="sms:01046470990" className="inline-flex items-center text-sm font-bold text-yellow-400 hover:text-yellow-300 transition-colors border border-yellow-400/50 px-3 py-1.5 rounded-full hover:bg-yellow-400/10">
-                                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                            <div className="mt-5 text-right" data-html2canvas-ignore="true">
+                                <a href="sms:01046470990" className="inline-flex items-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md">
+                                    <MessageCircle className="w-4 h-4 mr-2" />
                                     전문가 정밀 점검 예약문의 &rarr;
                                 </a>
                             </div>
@@ -395,17 +352,6 @@ ${result.legalBasis}
       </div>
 
       <Disclaimer />
-      
-      <div className="flex justify-center pt-4" data-html2canvas-ignore="true">
-         <button 
-            onClick={handleDownloadPDF}
-            disabled={isPdfGenerating}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-full font-bold shadow-lg transition-all transform hover:scale-105 disabled:opacity-70 text-sm md:text-base"
-        >
-            {isPdfGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-            {isPdfGenerating ? '생성 중...' : '리포트 PDF 저장'}
-        </button>
-      </div>
 
     </div>
   );
